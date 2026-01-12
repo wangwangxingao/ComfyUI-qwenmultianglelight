@@ -192,4 +192,3 @@ SCENE LOCK, FIXED VIEWPOINT, maintaining character consistency and pose. RELIGHT
 - **项目地址**：https://github.com/wallen0322/ComfyUI-qwenmultianglelight
 - **核心功能**：3D交互式光照控制、多光源配置、实时预览、电影模式光照
 
-[file name]: PROMPT_EXAMPLES.md
