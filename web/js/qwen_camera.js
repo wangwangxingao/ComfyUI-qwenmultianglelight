@@ -7,10 +7,10 @@ import { VIEWER_HTML } from "./camera_viewer.js";
  */
 
 app.registerExtension({
-    name: "qwen.multiangle.lightning",
+    name: "qwen.multiangle.ww",
 
     async beforeRegisterNodeDef(nodeType, nodeData, app) {
-        if (nodeData.name === "QwenMultiangleLightningNode") {
+        if (nodeData.name === "QwenMultiangleNodeWW") {
             const onNodeCreated = nodeType.prototype.onNodeCreated;
 
             nodeType.prototype.onNodeCreated = function () {
@@ -99,8 +99,6 @@ app.registerExtension({
                 
                 // 同步到 3D 视图的函数（提前声明）
                 let syncTo3DView = () => {};
-
-
 
                 // 创建主容器
                 const container = document.createElement("div");
@@ -239,6 +237,7 @@ app.registerExtension({
                 widget.element = container;
                 this._viewerIframe = iframe;
                 this._viewerReady = false;
+                this._customPrompts = null;
 
                 // Message handler
                 const onMessage = (event) => {
@@ -256,6 +255,7 @@ app.registerExtension({
                         const zWidget = node.widgets.find(w => w.name === "light_intensity");
                         const colorWidget = node.widgets.find(w => w.name === "light_color_hex");
                         const cinematicWidget = node.widgets.find(w => w.name === "cinematic_mode");
+                        const customPromptsWidget = node.widgets.find(w => w.name === "use_custom_prompts");
 
                         iframe.contentWindow.postMessage({
                             type: "INIT",
@@ -264,6 +264,7 @@ app.registerExtension({
                             zoom: zWidget?.value || 5.0,
                             lightColor: colorWidget?.value || "#FFFFFF",
                             useDefaultPrompts: cinematicWidget?.value || true,
+                            useCustomPrompts: customPromptsWidget?.value || false,
                             cameraView: false
                         }, "*");
                     } else if (data.type === 'ANGLE_UPDATE') {
@@ -316,6 +317,22 @@ app.registerExtension({
                     const zWidget = node.widgets.find(w => w.name === "light_intensity");
                     const colorWidget = node.widgets.find(w => w.name === "light_color_hex");
                     const cinematicWidget = node.widgets.find(w => w.name === "cinematic_mode");
+                    const customPromptsWidget = node.widgets.find(w => w.name === "use_custom_prompts");
+                    const azimuthPromptsWidget = node.widgets.find(w => w.name === "custom_azimuth_prompts");
+                    const elevationPromptsWidget = node.widgets.find(w => w.name === "custom_elevation_prompts");
+                    const intensityPromptsWidget = node.widgets.find(w => w.name === "custom_intensity_prompts");
+                    const colorPromptWidget = node.widgets.find(w => w.name === "custom_color_prompt");
+                    const globalConstraintsWidget = node.widgets.find(w => w.name === "custom_global_constraints");
+
+                    // 准备自定义提示词数据
+                    const customPrompts = customPromptsWidget?.value ? {
+                        use_custom: true,
+                        azimuth: azimuthPromptsWidget?.value || "",
+                        elevation: elevationPromptsWidget?.value || "",
+                        intensity: intensityPromptsWidget?.value || "",
+                        color: colorPromptWidget?.value || "",
+                        global_constraints: globalConstraintsWidget?.value || ""
+                    } : null;
 
                     iframe.contentWindow.postMessage({
                         type: "SYNC_ANGLES",
@@ -324,6 +341,8 @@ app.registerExtension({
                         zoom: zWidget?.value || 5.0,
                         lightColor: colorWidget?.value || "#FFFFFF",
                         useDefaultPrompts: cinematicWidget?.value || true,
+                        useCustomPrompts: customPromptsWidget?.value || false,
+                        customPrompts: customPrompts,
                         cameraView: false
                     }, "*");
                 };
@@ -332,7 +351,10 @@ app.registerExtension({
                 const origCallback = this.onWidgetChanged;
                 this.onWidgetChanged = function(name, value, old_value, widget) {
                     if (origCallback) origCallback.apply(this, arguments);
-                    if (["light_azimuth", "light_elevation", "light_intensity", "light_color_hex", "cinematic_mode"].includes(name)) {
+                    if (["light_azimuth", "light_elevation", "light_intensity", "light_color_hex", 
+                         "cinematic_mode", "use_custom_prompts", "custom_azimuth_prompts",
+                         "custom_elevation_prompts", "custom_intensity_prompts", "custom_color_prompt",
+                         "custom_global_constraints"].includes(name)) {
                         saveCurrentConfig();
                         syncTo3DView();
                     }
@@ -342,6 +364,8 @@ app.registerExtension({
                 const onExecuted = this.onExecuted;
                 this.onExecuted = function(message) {
                     onExecuted?.apply(this, arguments);
+                    
+                    // 发送图片到预览
                     if (message?.image_base64 && message.image_base64[0]) {
                         const imageData = message.image_base64[0];
                         const sendImage = () => {
@@ -351,6 +375,21 @@ app.registerExtension({
                         };
                         if (this._viewerReady) sendImage();
                         else this._pendingImageSend = sendImage;
+                    }
+                    
+                    // 发送自定义提示词数据
+                    if (message?.custom_prompts && message.custom_prompts[0]) {
+                        this._customPrompts = message.custom_prompts[0];
+                        const sendCustomPrompts = () => {
+                            if (iframe.contentWindow) {
+                                iframe.contentWindow.postMessage({ 
+                                    type: "UPDATE_CUSTOM_PROMPTS", 
+                                    customPrompts: this._customPrompts 
+                                }, "*");
+                            }
+                        };
+                        if (this._viewerReady) sendCustomPrompts();
+                        else this._pendingCustomPrompts = sendCustomPrompts;
                     }
                 };
 
@@ -408,6 +447,7 @@ app.registerExtension({
                     window.removeEventListener('message', onMessage);
                     if (resizeTimeout) clearTimeout(resizeTimeout);
                     delete this._pendingImageSend;
+                    delete this._pendingCustomPrompts;
                     if (iframe._blobUrl) URL.revokeObjectURL(iframe._blobUrl);
                     if (originalOnRemoved) originalOnRemoved.apply(this, arguments);
                 };
