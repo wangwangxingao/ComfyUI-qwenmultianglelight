@@ -103,7 +103,7 @@ class QwenMultiangleNodeWW:
             return default_prompts
         
         prompts = custom_prompts_str.split('|')
-        prompts = [p.strip() for p in prompts]
+        prompts = [p for p in prompts]
         
         if not prompts:
             return default_prompts
@@ -199,13 +199,13 @@ class QwenMultiangleNodeWW:
         else:
             global_constraints = "SCENE LOCK, FIXED VIEWPOINT, maintaining character consistency and pose. RELIGHTING ONLY: "
         
-        light_positioning = f"{pos_desc}, {elev_desc}"
+        light_positioning = f"{pos_desc} {elev_desc}"
         light_attributes = f"{int_desc} {color_desc}"
         
         if cinematic_mode:
-            return f"{global_constraints}{light_positioning}, {light_attributes}, cinematic relighting"
+            return f"{global_constraints} {light_positioning} {light_attributes}, cinematic relighting"
         else:
-            return f"{global_constraints}{light_positioning}, {light_attributes}"
+            return f"{global_constraints} {light_positioning} {light_attributes}"
 
     def generate_lighting_prompt(self, light_azimuth, light_elevation, light_intensity, 
                                 light_color_hex, cinematic_mode=True, use_custom_prompts=False,
