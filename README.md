@@ -43,7 +43,7 @@
 
 ## 不同风格的预设配置
 
-### 1. 相机视角风格（Camera View Style）
+## 1. 相机视角风格（Camera View Style）
 
 **适用场景**：模拟相机角度，用于视角控制而非光照控制
 
@@ -78,7 +78,7 @@ wide shot|medium shot|close-up
 
 
 
-2. 专业光照风格（Professional Lighting Style）
+## 2. 专业光照风格（Professional Lighting Style）
 
 **适用场景**：专业摄影/电影光照描述，详细的光源位置说明
 
@@ -112,7 +112,7 @@ SCENE LOCK, FIXED VIEWPOINT, maintaining character consistency and pose. RELIGHT
 
 场景锁定，固定视点，保持角色一致性和姿势。仅重光照：
 
-### 3. 简洁光照风格（Concise Lighting Style）
+## 3. 简洁光照风格（Concise Lighting Style）
 
 **适用场景**：简洁明了的光照描述，适合快速预览
 
@@ -146,7 +146,7 @@ SCENE LOCK, FIXED VIEWPOINT, maintaining character consistency and pose. RELIGHT
 
 场景锁定，固定视点，保持角色一致性和姿势。仅重光照：
 
-### 4. Qwen格式风格（Qwen Format Style）
+## 4. Qwen格式风格（Qwen Format Style）
 
 **适用场景**：符合Qwen模型期望的格式，优化AI理解
 
