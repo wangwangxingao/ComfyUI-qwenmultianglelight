@@ -357,12 +357,12 @@ export const VIEWER_HTML = `
     let color_desc = getColorDescription(state.customPrompts.color, state.lightColor);
     
     // 组合提示词
-    let prompt = h_direction + ", " + v_direction;
+    let prompt = h_direction + " " + v_direction;
     if (intensity_desc) {
-        prompt += ", " + intensity_desc;
+        prompt += " " + intensity_desc;
     }
     if (color_desc) {
-        prompt += ", " + color_desc;
+        prompt += " " + color_desc;
     }
     
     // 添加全局约束
